@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Save } from 'lucide-react'
 import { useMoodStore } from '../store'
+import { toast } from 'sonner'
 
 const Record = () => {
   const navigate = useNavigate()
@@ -38,7 +39,7 @@ const Record = () => {
 
   const handleSave = async () => {
     if (!selectedMood) {
-      alert('请选择心情类型')
+      toast.error('请选择心情类型')
       return
     }
 
@@ -70,20 +71,28 @@ const Record = () => {
       console.log('心情记录保存成功！')
       
       // 显示成功提示
-      alert('保存成功！')
+      toast.success('心情记录保存成功！', {
+        description: '您的心情已经记录下来了',
+        duration: 2000
+      })
       
       // 延迟导航，让用户看到成功提示
       setTimeout(() => {
         navigate('/')
-      }, 500)
-    } catch (error) {
+      }, 1000)
+    } catch (error: any) {
       console.error('Save record error:', error)
       console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name
       })
-      alert(`保存失败：${error.message || '未知错误'}，请重试`)
+      
+      // 显示错误提示
+      toast.error('保存失败', {
+        description: error?.message || '未知错误，请重试',
+        duration: 3000
+      })
     } finally {
       setLoading(false)
     }
@@ -103,11 +112,24 @@ const Record = () => {
           <h1 className="text-lg font-semibold text-gray-800">记录心情</h1>
           <button
             onClick={handleSave}
-            disabled={loading}
-            className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            disabled={loading || !selectedMood}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              loading || !selectedMood
+                ? 'bg-gray-400 text-white cursor-not-allowed'
+                : 'bg-orange-500 text-white hover:bg-orange-600 hover:shadow-lg active:scale-95'
+            }`}
           >
-            <Save size={16} />
-            {loading ? '保存中...' : '保存'}
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                保存中...
+              </>
+            ) : (
+              <>
+                <Save size={16} />
+                保存
+              </>
+            )}
           </button>
         </div>
       </header>

@@ -236,6 +236,51 @@ export const useMoodStore = create<MoodState>((set, get) => ({
   fetchRecords: async () => {
     set({ loading: true })
     try {
+      console.log('📖 开始获取心情记录...')
+      
+      // 检查用户状态
+      const experienceMode = localStorage.getItem('experience_mode')
+      const localUser = localStorage.getItem('current_user')
+      
+      if (experienceMode === 'true' || localUser) {
+        // 体验模式或本地用户 - 从本地存储读取
+        console.log('📱 从本地存储读取记录')
+        
+        const localRecords = JSON.parse(localStorage.getItem('local_mood_records') || '[]')
+        const localRecordTags = JSON.parse(localStorage.getItem('local_record_tags') || '[]')
+        const localTags = JSON.parse(localStorage.getItem('local_user_tags') || '[]')
+        
+        // 为记录添加标签信息
+        const recordsWithTags = localRecords.map(record => {
+          const recordTagRelations = localRecordTags.filter(rt => rt.record_id === record.id)
+          const recordTags = recordTagRelations.map(rt => {
+            const tag = localTags.find(t => t.id === rt.tag_id)
+            return {
+              tag_id: rt.tag_id,
+              user_tags: tag ? {
+                id: tag.id,
+                tag_name: tag.tag_name,
+                color: tag.color
+              } : null
+            }
+          }).filter(rt => rt.user_tags !== null)
+          
+          return {
+            ...record,
+            record_tags: recordTags
+          }
+        })
+        
+        // 按创建时间排序（最新的在前）
+        recordsWithTags.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        
+        set({ records: recordsWithTags })
+        console.log('✅ 本地记录读取成功！', recordsWithTags.length, '条记录')
+        return
+      }
+      
+      // Supabase用户 - 从数据库读取
+      console.log('🗄️ 从Supabase数据库读取记录')
       const { data, error } = await supabase
         .from('mood_records')
         .select(`
@@ -254,8 +299,9 @@ export const useMoodStore = create<MoodState>((set, get) => ({
       if (error) throw error
       
       set({ records: data || [] })
+      console.log('✅ Supabase记录读取成功！', (data || []).length, '条记录')
     } catch (error) {
-      console.error('Fetch records error:', error)
+      console.error('❌ Fetch records error:', error)
     } finally {
       set({ loading: false })
     }
@@ -263,6 +309,40 @@ export const useMoodStore = create<MoodState>((set, get) => ({
 
   fetchTags: async () => {
     try {
+      console.log('🏷️ 开始获取用户标签...')
+      
+      // 检查用户状态
+      const experienceMode = localStorage.getItem('experience_mode')
+      const localUser = localStorage.getItem('current_user')
+      
+      if (experienceMode === 'true' || localUser) {
+        // 体验模式或本地用户 - 从本地存储读取
+        console.log('📱 从本地存储读取标签')
+        
+        let localTags = JSON.parse(localStorage.getItem('local_user_tags') || '[]')
+        
+        // 如果没有本地标签，创建默认标签
+        if (localTags.length === 0) {
+          console.log('🆕 创建默认标签')
+          const userId = localUser ? JSON.parse(localUser).id : 'experience_user'
+          const defaultTags = [
+            { id: 'local_tag_1', user_id: userId, tag_name: '工作', color: '#FF6B35', created_at: new Date().toISOString() },
+            { id: 'local_tag_2', user_id: userId, tag_name: '生活', color: '#4A90E2', created_at: new Date().toISOString() },
+            { id: 'local_tag_3', user_id: userId, tag_name: '运动', color: '#7ED321', created_at: new Date().toISOString() },
+            { id: 'local_tag_4', user_id: userId, tag_name: '学习', color: '#9013FE', created_at: new Date().toISOString() },
+            { id: 'local_tag_5', user_id: userId, tag_name: '社交', color: '#FF9500', created_at: new Date().toISOString() }
+          ]
+          localStorage.setItem('local_user_tags', JSON.stringify(defaultTags))
+          localTags = defaultTags
+        }
+        
+        set({ tags: localTags })
+        console.log('✅ 本地标签读取成功！', localTags.length, '个标签')
+        return
+      }
+      
+      // Supabase用户 - 从数据库读取
+      console.log('🗄️ 从Supabase数据库读取标签')
       const { data, error } = await supabase
         .from('user_tags')
         .select('*')
@@ -271,13 +351,61 @@ export const useMoodStore = create<MoodState>((set, get) => ({
       if (error) throw error
       
       set({ tags: data || [] })
+      console.log('✅ Supabase标签读取成功！', (data || []).length, '个标签')
     } catch (error) {
-      console.error('Fetch tags error:', error)
+      console.error('❌ Fetch tags error:', error)
     }
   },
 
   createRecord: async (record, tagIds?: string[]) => {
     try {
+      console.log('🚀 开始保存心情记录...', { record, tagIds })
+      
+      // 检查用户状态
+      const experienceMode = localStorage.getItem('experience_mode')
+      const localUser = localStorage.getItem('current_user')
+      
+      if (experienceMode === 'true' || localUser) {
+        // 体验模式或本地用户 - 使用本地存储
+        console.log('📱 使用本地存储保存记录')
+        
+        const recordId = 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+        const userId = localUser ? JSON.parse(localUser).id : 'experience_user'
+        
+        const newRecord = {
+          id: recordId,
+          user_id: userId,
+          ...record,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+        
+        // 保存到本地存储
+        const existingRecords = JSON.parse(localStorage.getItem('local_mood_records') || '[]')
+        existingRecords.unshift(newRecord)
+        localStorage.setItem('local_mood_records', JSON.stringify(existingRecords))
+        
+        // 保存标签关联（如果有）
+        if (tagIds && tagIds.length > 0) {
+          const existingRecordTags = JSON.parse(localStorage.getItem('local_record_tags') || '[]')
+          const newRecordTags = tagIds.map(tagId => ({
+            record_id: recordId,
+            tag_id: tagId
+          }))
+          existingRecordTags.push(...newRecordTags)
+          localStorage.setItem('local_record_tags', JSON.stringify(existingRecordTags))
+        }
+        
+        // 更新本地状态
+        const currentRecords = get().records
+        set({ records: [newRecord, ...currentRecords] })
+        
+        console.log('✅ 本地记录保存成功！')
+        return
+      }
+      
+      // Supabase用户 - 使用数据库
+      console.log('🗄️ 使用Supabase数据库保存记录')
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('User not authenticated')
 
@@ -311,8 +439,9 @@ export const useMoodStore = create<MoodState>((set, get) => ({
       
       // 刷新记录列表
       await get().fetchRecords()
+      console.log('✅ Supabase记录保存成功！')
     } catch (error) {
-      console.error('Create record error:', error)
+      console.error('❌ Create record error:', error)
       throw error
     }
   },

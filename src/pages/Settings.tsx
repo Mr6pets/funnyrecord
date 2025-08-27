@@ -14,19 +14,59 @@ import {
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuthStore, useMoodStore } from '../store'
+import { useNotifications } from '../hooks/useNotifications'
+import { useTheme } from '../hooks/useTheme'
 import EditProfileModal from '../components/EditProfileModal'
 import PrivacyPolicyModal from '../components/PrivacyPolicyModal'
+import { toast } from 'sonner'
 
 const Settings = () => {
   const navigate = useNavigate()
-  const { user, profile, signOut } = useAuthStore()
+  const { user, profile, signOut, isLocalUser } = useAuthStore()
   const { records } = useMoodStore()
-  const [notifications, setNotifications] = useState(true)
-  const [darkMode, setDarkMode] = useState(false)
-  const [language, setLanguage] = useState('zh-CN')
+  const { permission, requestPermission, sendMoodReminder } = useNotifications()
+  const { theme, isDark, toggleTheme, getThemeLabel } = useTheme()
+  const [notifications, setNotifications] = useState(() => {
+    return localStorage.getItem('notifications_enabled') === 'true'
+  })
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem('language') || 'zh-CN'
+  })
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showEditProfile, setShowEditProfile] = useState(false)
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false)
+
+  // 处理通知设置
+  const handleNotificationToggle = async () => {
+    if (!notifications) {
+      // 开启通知时请求权限
+      const result = await requestPermission()
+      if (result === 'granted') {
+        setNotifications(true)
+        localStorage.setItem('notifications_enabled', 'true')
+        toast.success('通知已开启')
+        // 发送测试通知
+        setTimeout(() => {
+          sendMoodReminder()
+        }, 1000)
+      } else {
+        toast.error('通知权限被拒绝，请在浏览器设置中允许通知')
+      }
+    } else {
+      // 关闭通知
+      setNotifications(false)
+      localStorage.setItem('notifications_enabled', 'false')
+      toast.success('通知已关闭')
+    }
+  }
+
+  // 处理语言设置
+  const handleLanguageToggle = () => {
+    const newLanguage = language === 'zh-CN' ? 'en-US' : 'zh-CN'
+    setLanguage(newLanguage)
+    localStorage.setItem('language', newLanguage)
+    toast.success(`语言已切换为${newLanguage === 'zh-CN' ? '简体中文' : 'English'}`)
+  }
 
   const handleLogout = async () => {
     try {
@@ -39,13 +79,55 @@ const Settings = () => {
 
   const handleExportData = () => {
     try {
+      let exportRecords = records
+      
+      // 如果是本地用户或体验模式，从localStorage获取数据
+      if (isLocalUser || localStorage.getItem('experience_mode') === 'true') {
+        const localRecords = JSON.parse(localStorage.getItem('local_mood_records') || '[]')
+        const localTags = JSON.parse(localStorage.getItem('local_user_tags') || '[]')
+        exportRecords = localRecords
+        
+        const exportData = {
+          user: {
+            id: user?.id || 'local_user',
+            email: user?.email || 'local@example.com',
+            profile: profile,
+            userType: isLocalUser ? 'local' : 'experience'
+          },
+          records: exportRecords,
+          tags: localTags,
+          settings: {
+            notifications: notifications,
+            theme: theme,
+            language: language
+          },
+          exportDate: new Date().toISOString()
+        }
+        
+        const dataStr = JSON.stringify(exportData, null, 2)
+        const dataBlob = new Blob([dataStr], { type: 'application/json' })
+        const url = URL.createObjectURL(dataBlob)
+        
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `mood-diary-export-${new Date().toISOString().split('T')[0]}.json`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        
+        URL.revokeObjectURL(url)
+        toast.success('数据导出成功！')
+        return
+      }
+      
+      // Supabase用户的导出逻辑
       const exportData = {
         user: {
           id: user?.id,
           email: user?.email,
           profile: profile
         },
-        records: records,
+        records: exportRecords,
         exportDate: new Date().toISOString()
       }
       
@@ -61,15 +143,32 @@ const Settings = () => {
       document.body.removeChild(link)
       
       URL.revokeObjectURL(url)
+      toast.success('数据导出成功！')
     } catch (error) {
       console.error('Export error:', error)
-      alert('导出失败，请重试')
+      toast.error('导出失败，请重试')
     }
   }
 
   const handleDeleteAllData = async () => {
     try {
-      // 删除所有心情记录
+      // 如果是本地用户或体验模式，清理localStorage
+      if (isLocalUser || localStorage.getItem('experience_mode') === 'true') {
+        localStorage.removeItem('local_mood_records')
+        localStorage.removeItem('local_user_tags')
+        localStorage.removeItem('local_record_tags')
+        
+        setShowDeleteConfirm(false)
+        toast.success('本地数据清理完成')
+        
+        // 刷新数据
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
+        return
+      }
+      
+      // Supabase用户的删除逻辑
       const { error } = await supabase
         .from('mood_records')
         .delete()
@@ -78,13 +177,15 @@ const Settings = () => {
       if (error) throw error
       
       setShowDeleteConfirm(false)
-      alert('数据清理完成')
+      toast.success('数据清理完成')
       
       // 刷新数据
-      window.location.reload()
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
     } catch (error) {
       console.error('Delete data error:', error)
-      alert('删除失败，请重试')
+      toast.error('删除失败，请重试')
       setShowDeleteConfirm(false)
     }
   }
@@ -108,21 +209,23 @@ const Settings = () => {
           icon: Bell,
           label: '提醒通知',
           value: notifications,
-          action: () => setNotifications(!notifications),
-          type: 'toggle'
+          action: handleNotificationToggle,
+          type: 'toggle',
+          description: permission === 'denied' ? '需要浏览器权限' : ''
         },
         {
-          icon: darkMode ? Moon : Sun,
-          label: '深色模式',
-          value: darkMode,
-          action: () => setDarkMode(!darkMode),
-          type: 'toggle'
+          icon: isDark ? Moon : Sun,
+          label: '主题模式',
+          value: getThemeLabel(),
+          action: toggleTheme,
+          description: '支持浅色/深色/跟随系统'
         },
         {
           icon: Globe,
           label: '语言设置',
           value: language === 'zh-CN' ? '简体中文' : 'English',
-          action: () => setLanguage(language === 'zh-CN' ? 'en-US' : 'zh-CN')
+          action: handleLanguageToggle,
+          description: '切换应用显示语言'
         }
       ]
     },
@@ -211,33 +314,52 @@ const Settings = () => {
                 <button
                   key={itemIndex}
                   onClick={item.action}
-                  className={`w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors ${
-                    item.danger ? 'text-red-600' : 'text-gray-800'
+                  className={`group w-full px-5 py-4 flex items-start justify-between hover:bg-gray-50 active:bg-gray-100 transition-all duration-200 ${
+                    item.danger ? 'text-red-600 hover:bg-red-50' : 'text-gray-800'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <item.icon className={`w-5 h-5 ${
-                      item.danger ? 'text-red-500' : 'text-gray-500'
-                    }`} />
-                    <span className="font-medium">{item.label}</span>
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className={`flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${
+                      item.danger 
+                        ? 'bg-red-50 text-red-500 group-hover:bg-red-100 group-hover:shadow-sm' 
+                        : 'bg-gray-50 text-gray-500 group-hover:bg-gray-100 group-hover:shadow-sm'
+                    } transition-all duration-200`}>
+                      <item.icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <div className={`font-semibold text-base leading-tight mb-0.5 text-left ${
+                        item.danger ? 'text-red-600' : 'text-gray-900'
+                      }`}>
+                        {item.label}
+                      </div>
+                      {item.description && (
+                        <div className="text-sm text-gray-500 leading-relaxed text-left">
+                          {item.description}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-start gap-3 flex-shrink-0 ml-4 pt-1">
                     {item.type === 'toggle' ? (
-                      <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        item.value ? 'bg-orange-500' : 'bg-gray-200'
+                      <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300 shadow-inner mt-1 ${
+                        item.value 
+                          ? 'bg-orange-500 shadow-orange-200' 
+                          : 'bg-gray-200 shadow-gray-100'
                       }`}>
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          item.value ? 'translate-x-6' : 'translate-x-1'
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-all duration-300 ${
+                          item.value ? 'translate-x-6 shadow-orange-300' : 'translate-x-1'
                         }`} />
                       </div>
                     ) : (
-                      <>
+                      <div className="flex items-center gap-2">
                         {item.value && (
-                          <span className="text-sm text-gray-500">{item.value}</span>
+                          <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg">
+                            {item.value}
+                          </span>
                         )}
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
-                      </>
+                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
+                      </div>
                     )}
                   </div>
                 </button>
