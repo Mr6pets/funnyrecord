@@ -1,0 +1,7 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" rx="24" fill="#3b82f6"/>
+  <path d="M96 48C78.3 48 64 62.3 64 80C64 97.7 78.3 112 96 112C113.7 112 128 97.7 128 80C128 62.3 113.7 48 96 48ZM96 100C84.9 100 76 91.1 76 80C76 68.9 84.9 60 96 60C107.1 60 116 68.9 116 80C116 91.1 107.1 100 96 100Z" fill="white"/>
+  <path d="M96 120C74.8 120 48 132.4 48 144V152H144V144C144 132.4 117.2 120 96 120Z" fill="white"/>
+  <circle cx="96" cy="80" r="8" fill="#3b82f6"/>
+  <text x="96" y="170" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">心情日记</text>
+</svg>
