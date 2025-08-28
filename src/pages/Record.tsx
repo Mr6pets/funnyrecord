@@ -163,16 +163,44 @@ const Record = () => {
             <span className="text-sm text-gray-500">轻微</span>
             <span className="text-sm text-gray-500">强烈</span>
           </div>
-          <input
-            type="range"
-            min="1"
-            max="5"
-            value={intensity}
-            onChange={(e) => setIntensity(Number(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-          />
-          <div className="text-center mt-2">
+          <div className="relative">
+            <input
+              type="range"
+              min="1"
+              max="5"
+              value={intensity}
+              onChange={(e) => setIntensity(Number(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+            />
+            {/* 刻度标识 */}
+            <div className="flex justify-between mt-2 px-1">
+              {[1, 2, 3, 4, 5].map((value) => (
+                <div
+                  key={value}
+                  className="flex flex-col items-center cursor-pointer"
+                  onClick={() => setIntensity(value)}
+                >
+                  <div className={`w-2 h-2 rounded-full mb-1 transition-colors ${
+                    intensity === value ? 'bg-orange-500' : 'bg-gray-300'
+                  }`} />
+                  <span className={`text-xs transition-colors ${
+                    intensity === value ? 'text-orange-500 font-semibold' : 'text-gray-400'
+                  }`}>
+                    {value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="text-center mt-3">
             <span className="text-lg font-semibold text-orange-500">{intensity}</span>
+            <span className="text-sm text-gray-500 ml-2">
+              {intensity === 1 && '非常轻微'}
+              {intensity === 2 && '轻微'}
+              {intensity === 3 && '中等'}
+              {intensity === 4 && '强烈'}
+              {intensity === 5 && '非常强烈'}
+            </span>
           </div>
         </div>
 

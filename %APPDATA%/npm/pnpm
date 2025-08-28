@@ -1,0 +1,17 @@
+#!/bin/sh
+basedir=$(dirname "$(echo "$0" | sed -e 's,\\,/,g')")
+
+case `uname` in
+    *CYGWIN*) basedir=`cygpath -w "$basedir"`;;
+esac
+
+if [ -z "$NODE_PATH" ]; then
+  export NODE_PATH="/mnt/c/Users/Administrator/AppData/Roaming/npm/global/5/.pnpm/pnpm@10.15.0/node_modules/pnpm/bin/node_modules:/mnt/c/Users/Administrator/AppData/Roaming/npm/global/5/.pnpm/pnpm@10.15.0/node_modules/pnpm/node_modules:/mnt/c/Users/Administrator/AppData/Roaming/npm/global/5/.pnpm/pnpm@10.15.0/node_modules:/mnt/c/Users/Administrator/AppData/Roaming/npm/global/5/.pnpm/node_modules"
+else
+  export NODE_PATH="/mnt/c/Users/Administrator/AppData/Roaming/npm/global/5/.pnpm/pnpm@10.15.0/node_modules/pnpm/bin/node_modules:/mnt/c/Users/Administrator/AppData/Roaming/npm/global/5/.pnpm/pnpm@10.15.0/node_modules/pnpm/node_modules:/mnt/c/Users/Administrator/AppData/Roaming/npm/global/5/.pnpm/pnpm@10.15.0/node_modules:/mnt/c/Users/Administrator/AppData/Roaming/npm/global/5/.pnpm/node_modules:$NODE_PATH"
+fi
+if [ -x "$basedir/node" ]; then
+  exec "$basedir/node"  "C:/Users/Administrator/AppData/Roaming/npm/global/5/node_modules/pnpm/bin/pnpm.cjs" "$@"
+else
+  exec node  "C:/Users/Administrator/AppData/Roaming/npm/global/5/node_modules/pnpm/bin/pnpm.cjs" "$@"
+fi

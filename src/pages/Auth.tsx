@@ -255,12 +255,61 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-br from-orange-400 to-pink-400 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
         {/* Logo区域 */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-4">
             <Heart className="w-8 h-8 text-orange-500" />
           </div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">心情日记</h1>
           <p className="text-gray-600">记录每一刻的美好心情</p>
+        </div>
+
+        {/* 数据库问题说明 */}
+        <div className="mb-6 p-4 bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-400 rounded-lg">
+          <div className="flex items-start space-x-2">
+            <div className="text-red-500 mt-1 text-lg">⚠️</div>
+            <div>
+              <p className="text-sm text-red-700 font-semibold mb-2">
+                检测到数据库配置问题
+              </p>
+              <ul className="text-xs text-red-600 space-y-1 mb-3">
+                <li>• Supabase 环境变量未配置</li>
+                <li>• 数据库连接权限问题</li>
+                <li>• 用户注册功能暂时不可用</li>
+              </ul>
+              <p className="text-xs text-red-600 font-medium">
+                👇 推荐使用体验模式，享受完整功能！
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* 体验模式按钮 - 更突出的设计 */}
+        <div className="mb-6">
+          <button
+            onClick={handleSkipAuth}
+            className="w-full bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white py-4 rounded-xl font-semibold hover:from-green-600 hover:via-green-700 hover:to-emerald-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-3"
+          >
+            <span className="text-xl">🚀</span>
+            <span className="text-base">立即开始体验</span>
+          </button>
+          
+          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-xs text-green-700 text-center font-medium mb-1">
+              ✨ 完整功能体验，无需注册
+            </p>
+            <div className="flex justify-center space-x-4 text-xs text-green-600">
+              <span>💾 本地存储</span>
+              <span>🔒 隐私安全</span>
+              <span>📤 数据导出</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 分割线 */}
+        <div className="flex items-center mb-6">
+          <div className="flex-1 border-t border-gray-200"></div>
+          <span className="px-4 text-sm text-gray-500">或尝试账号注册</span>
+          <div className="flex-1 border-t border-gray-200"></div>
         </div>
 
         {/* 表单区域 */}
@@ -304,18 +353,19 @@ const Auth = () => {
           </div>
 
           {error && (
-            <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg">
-              {error}
+            <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg border border-red-200">
+              <div className="font-medium mb-1">❌ {error}</div>
+              <div className="text-xs text-red-500">
+                建议点击上方"立即开始体验"按钮直接使用应用
+              </div>
             </div>
           )}
 
           {success && (
-            <div className="text-green-500 text-sm text-center bg-green-50 p-3 rounded-lg">
-              {success}
+            <div className="text-green-600 text-sm text-center bg-green-50 p-3 rounded-lg border border-green-200">
+              ✅ {success}
             </div>
           )}
-
-          {/* 重发确认邮件功能已移除，简化注册流程 */}
 
           <button
             type="submit"
@@ -330,7 +380,7 @@ const Auth = () => {
             type="button"
             onClick={handleLocalAuth}
             disabled={loading}
-            className="w-full bg-blue-500 text-white py-3 rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-3"
+            className="w-full bg-blue-500 text-white py-3 rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? '处理中...' : `本地${isLogin ? '登录' : '注册'}（备用方案）`}
           </button>
@@ -350,16 +400,13 @@ const Auth = () => {
           </button>
         </div>
 
-        {/* 体验模式按钮 */}
-        <div className="text-center mt-4">
-          <button
-            onClick={handleSkipAuth}
-            className="text-gray-500 hover:text-gray-600 text-sm font-medium border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            🚀 体验模式（跳过注册）
-          </button>
-          <p className="text-xs text-gray-400 mt-2">
-            遇到注册问题？点击体验模式直接使用应用
+        {/* 问题说明 */}
+        <div className="mt-6 p-3 bg-gray-50 rounded-lg">
+          <p className="text-xs text-gray-600 text-center leading-relaxed">
+            <strong>遇到注册问题？</strong><br/>
+            这通常是因为 Supabase 数据库配置问题。<br/>
+            使用体验模式可以立即享受完整功能，<br/>
+            数据安全保存在您的设备上。
           </p>
         </div>
       </div>

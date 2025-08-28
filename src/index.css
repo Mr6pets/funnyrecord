@@ -135,3 +135,64 @@ input, textarea, select {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
 }
+
+/* 自定义滑块样式 */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #e5e7eb;
+  outline: none;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f97316;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3);
+  transition: all 0.3s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: #ea580c;
+  transform: scale(1.1);
+  box-shadow: 0 3px 8px rgba(249, 115, 22, 0.4);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f97316;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3);
+  transition: all 0.3s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  background: #ea580c;
+  transform: scale(1.1);
+  box-shadow: 0 3px 8px rgba(249, 115, 22, 0.4);
+}
+
+.slider::-moz-range-track {
+  background: #e5e7eb;
+  height: 8px;
+  border-radius: 6px;
+  border: none;
+}
+
+/* 深色模式下的滑块样式 */
+.dark .slider {
+  background: #404040;
+}
+
+.dark .slider::-moz-range-track {
+  background: #404040;
+}
