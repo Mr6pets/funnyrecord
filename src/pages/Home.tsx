@@ -41,13 +41,38 @@ const Home = () => {
     fetchRecords()
   }, [])
 
-  // 快速心情选项
+  // 完整的心情映射（包含所有可能的心情类型）
+  const allMoodsMap = {
+    happy: '😊',
+    sad: '😢',
+    angry: '😠',
+    anxious: '😰',
+    calm: '😌',
+    excited: '🤩',
+    tired: '😴',
+    confused: '😕',
+    grateful: '🙏',
+    proud: '😤',
+    nervous: '😬',
+    hopeful: '🤗',
+    lonely: '😔',
+    surprised: '😲',
+    loving: '🥰',
+    frustrated: '😤'
+  }
+
+  // 快速心情选项（显示最常用的10个）
   const quickMoods = [
     { type: 'happy', emoji: '😊', label: '开心', color: 'bg-yellow-100 hover:bg-yellow-200' },
     { type: 'sad', emoji: '😢', label: '难过', color: 'bg-blue-100 hover:bg-blue-200' },
     { type: 'angry', emoji: '😠', label: '愤怒', color: 'bg-red-100 hover:bg-red-200' },
-    { type: 'anxious', emoji: '😰', label: '焦虑', color: 'bg-orange-100 hover:bg-orange-200' },
-    { type: 'calm', emoji: '😌', label: '平静', color: 'bg-green-100 hover:bg-green-200' }
+    { type: 'anxious', emoji: '😰', label: '焦虑', color: 'bg-purple-100 hover:bg-purple-200' },
+    { type: 'calm', emoji: '😌', label: '平静', color: 'bg-green-100 hover:bg-green-200' },
+    { type: 'excited', emoji: '🤩', label: '兴奋', color: 'bg-orange-100 hover:bg-orange-200' },
+    { type: 'tired', emoji: '😴', label: '疲惫', color: 'bg-gray-100 hover:bg-gray-200' },
+    { type: 'grateful', emoji: '🙏', label: '感恩', color: 'bg-pink-100 hover:bg-pink-200' },
+    { type: 'loving', emoji: '🥰', label: '爱意', color: 'bg-pink-100 hover:bg-pink-200' },
+    { type: 'hopeful', emoji: '🤗', label: '希望', color: 'bg-green-100 hover:bg-green-200' }
   ]
 
   // 快速记录心情
@@ -275,7 +300,7 @@ const Home = () => {
             <p className="text-sm text-gray-600 mb-2">最近记录：</p>
             <div className="flex items-center gap-2">
               <span className="text-lg">
-                {quickMoods.find(m => m.type === todayRecords[0]?.mood_type)?.emoji || '😊'}
+                {allMoodsMap[todayRecords[0]?.mood_type] || '😊'}
               </span>
               <span className="text-sm text-gray-800">
                 {format(new Date(todayRecords[0]?.created_at), 'HH:mm')}
