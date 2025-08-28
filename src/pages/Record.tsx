@@ -25,7 +25,15 @@ const Record = () => {
     { type: 'calm', emoji: '😌', label: '平静', color: 'bg-green-100 text-green-600' },
     { type: 'excited', emoji: '🤩', label: '兴奋', color: 'bg-orange-100 text-orange-600' },
     { type: 'tired', emoji: '😴', label: '疲惫', color: 'bg-gray-100 text-gray-600' },
-    { type: 'confused', emoji: '😕', label: '困惑', color: 'bg-indigo-100 text-indigo-600' }
+    { type: 'confused', emoji: '😕', label: '困惑', color: 'bg-indigo-100 text-indigo-600' },
+    { type: 'grateful', emoji: '🙏', label: '感恩', color: 'bg-pink-100 text-pink-600' },
+    { type: 'proud', emoji: '😤', label: '骄傲', color: 'bg-yellow-100 text-yellow-700' },
+    { type: 'nervous', emoji: '😬', label: '紧张', color: 'bg-red-100 text-red-500' },
+    { type: 'hopeful', emoji: '🤗', label: '充满希望', color: 'bg-green-100 text-green-700' },
+    { type: 'lonely', emoji: '😔', label: '孤独', color: 'bg-gray-100 text-gray-700' },
+    { type: 'surprised', emoji: '😲', label: '惊讶', color: 'bg-blue-100 text-blue-700' },
+    { type: 'loving', emoji: '🥰', label: '充满爱意', color: 'bg-pink-100 text-pink-700' },
+    { type: 'frustrated', emoji: '😤', label: '沮丧', color: 'bg-orange-100 text-orange-700' }
   ]
 
   // 使用从数据库获取的标签，如果没有则使用默认标签

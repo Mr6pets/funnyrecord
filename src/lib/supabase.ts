@@ -13,7 +13,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export interface MoodRecord {
   id: string
   user_id: string
-  mood_type: 'happy' | 'sad' | 'angry' | 'anxious' | 'calm' | 'excited' | 'tired' | 'confused'
+  mood_type: 'happy' | 'sad' | 'angry' | 'anxious' | 'calm' | 'excited' | 'tired' | 'confused' | 'grateful' | 'proud' | 'nervous' | 'hopeful' | 'lonely' | 'surprised' | 'loving' | 'frustrated'
   intensity: number
   note?: string
   created_at: string
